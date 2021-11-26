@@ -38,15 +38,18 @@ class LibcSearcher(object):
         if len(self.condition) == 0:
             print("No leaked info provided.")
             print(
-                "Please supply more info using add_condition(leaked_func, leaked_address).")
+                "Please supply more info using add_condition(leaked_func, leaked_address)."
+            )
             sys.exit(0)
 
         payload = {
             "symbols":
-                {s_name: hex(s_addr) for s_name, s_addr in self.condition.items()}
+            {s_name: hex(s_addr)
+             for s_name, s_addr in self.condition.items()}
         }
-        res = requests.post(
-            FIND_API_URL, data=json.dumps(payload), headers=HEADER)
+        res = requests.post(FIND_API_URL,
+                            data=json.dumps(payload),
+                            headers=HEADER)
         self.libcs = json.loads(res.text)
         self.decide_online()
 
@@ -61,7 +64,8 @@ class LibcSearcher(object):
             for x in range(len(self.libcs)):
                 print("%2d: %s" % (x, self.libcs[x]['id']))
             print(
-                "Please supply more info using \n\tadd_condition(leaked_func, leaked_address).")
+                "Please supply more info using \n\tadd_condition(leaked_func, leaked_address)."
+            )
             while True:
                 in_id = input(
                     "You can choose it by hand\nOr type 'exit' to quit:")
@@ -69,20 +73,18 @@ class LibcSearcher(object):
                     sys.exit(0)
                 try:
                     in_id = int(in_id)
-                    self.libc = self.libcs[in_id]['id']
+                    self.libc = self.libcs[in_id]
                     break
                 except:
                     continue
-
-        print("[+] %s be choosed." % self.libc)
+        # print(self.libc)
+        print("[+] %s be choosed." % self.libc['id'])
 
     def query_symbol_online(self, id: str, func: str):
-        payload = {
-            "symbols":
-                [func]
-        }
-        result = requests.post(
-            LIBC_API_URL + id, data=json.dumps(payload), headers=HEADER)
+        payload = {"symbols": [func]}
+        result = requests.post(LIBC_API_URL + id,
+                               data=json.dumps(payload),
+                               headers=HEADER)
         if func:
             return int(json.loads(result.text)['symbols'][func], 16)
         else:
@@ -98,7 +100,8 @@ class LibcSearcher(object):
         if len(self.condition) == 0:
             print("No leaked info provided.")
             print(
-                "Please supply more info using add_condition(leaked_func, leaked_address).")
+                "Please supply more info using add_condition(leaked_func, leaked_address)."
+            )
             sys.exit(0)
 
         # if self.online:
@@ -122,7 +125,7 @@ class LibcSearcher(object):
             fd = open(db + ff, "rb")
             data = fd.read().decode(errors='ignore').split("\n")
             for x in res:
-                if all(map(lambda line: x.match(line), data)):
+                if any(map(lambda line: x.match(line), data)):
                     result.append(ff)
             fd.close()
 
@@ -135,7 +138,8 @@ class LibcSearcher(object):
             for x in range(len(result)):
                 print("%2d: %s" % (x, self.pmore(result[x])))
             print(
-                "Please supply more info using \n\tadd_condition(leaked_func, leaked_address).")
+                "Please supply more info using \n\tadd_condition(leaked_func, leaked_address)."
+            )
             while True:
                 in_id = input(
                     "You can choose it by hand\nOr type 'exit' to quit:")
@@ -188,16 +192,22 @@ class LibcSearcher(object):
                     return int(addr, 16)
 
             print(
-                "No matched, Make sure you supply a valid function name or just add more libc.")
+                "No matched, Make sure you supply a valid function name or just add more libc."
+            )
             return 0
         else:
             if not self.libc:
                 self.query_libc_online()
-            return self.query_symbol_online(id=self.libc, func=func)
+            return int(self.libc['symbols'][func], 16)
+            # return self.query_symbol_online(id=self.libc, func=func)
 
 
 if __name__ == "__main__":
-    obj = LibcSearcher("strncpy", 0x7ff39014bdb0)
+    # obj = LibcSearcher("fgets", 0x7ff39014bd90)
+    # print("[+]system  offset: ", hex(obj.dump("system")))
+    # print("[+]/bin/sh offset: ", hex(obj.dump("str_bin_sh")))
+
+    obj = LibcSearcher("fgets", 0x7ff39014bd90, True)
     print("[+]system  offset: ", hex(obj.dump("system")))
     print("[+]/bin/sh offset: ", hex(obj.dump("str_bin_sh")))
     # print(obj.dump())
