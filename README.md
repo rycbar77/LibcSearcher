@@ -14,7 +14,6 @@
 
 - [x] 更新 libc-database
 - [x] 在线查询接口
-- [ ] 增加部分功能 (one_gadget?)
 
 ## 安装
 
