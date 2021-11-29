@@ -198,8 +198,10 @@ class LibcSearcher(object):
         else:
             if not self.libc:
                 self.query_libc_online()
-            return int(self.libc['symbols'][func], 16)
-            # return self.query_symbol_online(id=self.libc, func=func)
+            if self.libc['symbols'].get(func):
+                return int(self.libc['symbols'][func], 16)
+            else:
+                return self.query_symbol_online(id=self.libc['id'], func=func)
 
 
 if __name__ == "__main__":
@@ -209,5 +211,5 @@ if __name__ == "__main__":
 
     obj = LibcSearcher("fgets", 0x7ff39014bd90, True)
     print("[+]system  offset: ", hex(obj.dump("system")))
-    print("[+]/bin/sh offset: ", hex(obj.dump("str_bin_sh")))
+    print("[+]writev offset: ", hex(obj.dump("writev")))
     # print(obj.dump())
